@@ -1,0 +1,70 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local sidestepSpeed = 150          -- how fast the sidestep is
+local sidestepDuration = 5         -- how long the sidestep lasts
+local cooldown = 0.5               -- cooldown between sidesteps
+
+local canSidestep = true
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed or input.KeyCode ~= Enum.KeyCode.C then return end
+	if not canSidestep then return end
+
+	local character = player.Character or player.CharacterAdded:Wait()
+	local hrp = character:FindFirstChild("HumanoidRootPart")
+
+	if not hrp then return end
+
+	canSidestep = false
+
+	-- Choose left (-1) or right (1)
+	local direction = math.random(0, 1) == 0 and -1 or 1
+	local right = hrp.CFrame.RightVector * direction
+
+	-- Apply horizontal velocity
+	local originalVelocity = hrp.AssemblyLinearVelocity
+	local sidestepVelocity = Vector3.new(right.X, 0, right.Z).Unit * sidestepSpeed
+
+	hrp.AssemblyLinearVelocity = originalVelocity + sidestepVelocity
+
+	-- Restore velocity after a short delay
+	task.delay(sidestepDuration, function()
+		if hrp then
+			hrp.AssemblyLinearVelocity = Vector3.new(originalVelocity.X, hrp.AssemblyLinearVelocity.Y, originalVelocity.Z)
+		end
+	end)
+
+	-- Cooldown
+	task.delay(cooldown, function()
+		canSidestep = true
+	end)
+end)
+
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+
+-- Create and configure the sound
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://73299126189520"
+sound.Volume = 5
+sound.Name = "ClickSound"
+sound.Parent = workspace
+
+-- Play sound on C key press
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.C then
+		sound:Play()
+	end
+end)
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "made by joyboy_412 :)",
+Text = "C to do a sidestep", 
+
+Duration = 10
+})
