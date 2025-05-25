@@ -1,0 +1,78 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local highlightEnabled = false
+local highlightColor = Color3.fromRGB(255, 0, 0) -- 🔴 Red highlight
+
+-- Add a red highlight to a player's character
+local function addHighlight(character)
+	if not character or character:FindFirstChild("PlayerHighlight") then return end
+
+	local highlight = Instance.new("Highlight")
+	highlight.Name = "PlayerHighlight"
+	highlight.FillTransparency = 1
+	highlight.OutlineTransparency = 0
+	highlight.OutlineColor = highlightColor
+	highlight.Parent = character
+end
+
+-- Remove the highlight from a character
+local function removeHighlight(character)
+	local highlight = character:FindFirstChild("PlayerHighlight")
+	if highlight then
+		highlight:Destroy()
+	end
+end
+
+-- Toggle highlights on or off for all players except local player
+local function toggleHighlights()
+	highlightEnabled = not highlightEnabled
+	for _, player in pairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer and player.Character then
+			if highlightEnabled then
+				addHighlight(player.Character)
+			else
+				removeHighlight(player.Character)
+			end
+		end
+	end
+end
+
+-- Listen for E key press
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.E then
+		toggleHighlights()
+	end
+end)
+
+-- Handle new players joining
+local function setupPlayer(player)
+	if player == LocalPlayer then return end
+
+	player.CharacterAdded:Connect(function(character)
+		if highlightEnabled then
+			addHighlight(character)
+		end
+	end)
+
+	if player.Character and highlightEnabled then
+		addHighlight(player.Character)
+	end
+end
+
+-- Set up existing players
+for _, player in pairs(Players:GetPlayers()) do
+	setupPlayer(player)
+end
+
+-- Handle players joining
+Players.PlayerAdded:Connect(setupPlayer)
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "made by joyboy_412 :)",
+Text = "E to toggle esp", 
+
+Duration = 10
+})
