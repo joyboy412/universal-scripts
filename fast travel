@@ -1,0 +1,50 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+local flingActive = false
+local flingPower = 1000 --  You can increase this to make it crazier
+
+-- Create a BodyVelocity to apply directional fling force
+local bodyVelocity = Instance.new("BodyVelocity")
+bodyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+bodyVelocity.P = 5000
+
+-- Toggle fling with T
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+
+	if input.KeyCode == Enum.KeyCode.T then
+		flingActive = not flingActive
+
+		if flingActive then
+			print("fast travel ENABLED")
+			bodyVelocity.Parent = rootPart
+		else
+			print("fast travel DISABLED")
+			bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+			bodyVelocity.Parent = nil
+		end
+	end
+end)
+
+-- Apply fling force while walking
+RunService.RenderStepped:Connect(function()
+	if flingActive and humanoid.MoveDirection.Magnitude > 0 then
+		local moveDir = humanoid.MoveDirection.Unit
+		bodyVelocity.Velocity = moveDir * flingPower
+	end
+end)
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "made by joyboy_412 :)",
+Text = "T to toggle fast travel", 
+
+Duration = 10
+})
