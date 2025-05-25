@@ -1,0 +1,101 @@
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+local flying = false
+local speed = 100
+local bodyGyro
+local bodyVelocity
+local keys = {
+	W = false,
+	A = false,
+	S = false,
+	D = false,
+	E = false,
+	Q = false
+}
+
+-- Start flying
+local function startFlying()
+	bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.P = 9e4
+	bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+	bodyGyro.CFrame = rootPart.CFrame
+	bodyGyro.Parent = rootPart
+
+	bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+	bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+	bodyVelocity.Parent = rootPart
+
+	RunService.RenderStepped:Connect(function()
+		if flying then
+			local cam = workspace.CurrentCamera
+			local moveDirection = Vector3.new()
+
+			if keys.W then moveDirection += cam.CFrame.LookVector end
+			if keys.S then moveDirection -= cam.CFrame.LookVector end
+			if keys.A then moveDirection -= cam.CFrame.RightVector end
+			if keys.D then moveDirection += cam.CFrame.RightVector end
+			if keys.E then moveDirection += cam.CFrame.UpVector end
+			if keys.Q then moveDirection -= cam.CFrame.UpVector end
+
+			moveDirection = moveDirection.Unit
+			if moveDirection.Magnitude ~= moveDirection.Magnitude then
+				moveDirection = Vector3.zero
+			end
+
+			bodyVelocity.Velocity = moveDirection * speed
+			bodyGyro.CFrame = cam.CFrame
+		end
+	end)
+end
+
+-- Stop flying
+local function stopFlying()
+	if bodyGyro then bodyGyro:Destroy() end
+	if bodyVelocity then bodyVelocity:Destroy() end
+end
+
+-- Key press toggle
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+
+	local key = input.KeyCode
+	if key == Enum.KeyCode.X then
+		flying = not flying
+		if flying then
+			startFlying()
+		else
+			stopFlying()
+		end
+	elseif key == Enum.KeyCode.W then keys.W = true
+	elseif key == Enum.KeyCode.A then keys.A = true
+	elseif key == Enum.KeyCode.S then keys.S = true
+	elseif key == Enum.KeyCode.D then keys.D = true
+	elseif key == Enum.KeyCode.E then keys.E = true
+	elseif key == Enum.KeyCode.Q then keys.Q = true
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	local key = input.KeyCode
+	if key == Enum.KeyCode.W then keys.W = false
+	elseif key == Enum.KeyCode.A then keys.A = false
+	elseif key == Enum.KeyCode.S then keys.S = false
+	elseif key == Enum.KeyCode.D then keys.D = false
+	elseif key == Enum.KeyCode.E then keys.E = false
+	elseif key == Enum.KeyCode.Q then keys.Q = false
+	end
+end)
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "made by joyboy_412 :)",
+Text = "X to toggle flight", 
+
+Duration = 10
+})
