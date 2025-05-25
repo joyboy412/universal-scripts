@@ -3,7 +3,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local LocalPlayer = Players.LocalPlayer
 local highlightEnabled = false
-local highlightColor = Color3.fromRGB(255, 0, 0) -- 🔴 Red highlight
+local highlightColor = Color3.fromRGB(255, 0, 0) -- Red highlight
 
 -- Add a red highlight to a player's character
 local function addHighlight(character)
